@@ -1,0 +1,121 @@
+Lovable MVP Prompt: Not Just A Bad Period – Reproductive Health Companion App
+I’m building an MVP for a mobile/web app called Not Just A Bad Period.
+It’s a reproductive health companion for African and Afro-diaspora women living with chronic conditions like endometriosis, PCOS, fibroids, adenomyosis, and infertility — with a faith-aware and culturally sensitive approach.
+
+This app is for users who are often dismissed, misdiagnosed, and overwhelmed. It should feel like a gentle, smart, life-saving assistant — not a cold medical form.
+
+🎯 MVP GOALS:
+Build an app that helps users:
+
+Track symptoms, medications, and medical history
+
+Generate reports for doctors and appointments
+
+Identify patterns to support better decisions
+
+Manage energy levels and life tasks around their health
+
+Do all this in a calm, private, and faith-informed space
+
+🧩 Core Features to Build
+1. Symptom & Treatment Tracker
+Users log pain, fatigue, mood, digestive issues, meds taken, side effects
+
+Quick logging via sliders, emojis, or simple tags
+
+Optional voice note or journal input
+
+2. Medical Timeline & Uploads
+Users manually enter:
+
+Surgeries
+
+Diagnoses
+
+Specialist visits
+
+Scans/tests
+
+Upload images or summaries
+
+Chronological display
+
+3. Doctor Report Generator
+Auto-build PDF summaries with:
+
+Top 3 symptoms
+
+Timeline entries
+
+Recent logs
+
+Simple layout for clinical use
+
+4. Insight Dashboard
+Weekly/monthly trends
+
+Flare-up patterns
+
+Treatment effectiveness
+
+Energy averages over time
+
+5. Life Load + Care Support
+a. 🧠 Energy & Emotional Tracker
+Emoji scale or 1–5 slider for energy/mood
+
+Tracks "low weeks" to prevent overload
+
+b. 📆 Smart Appointments
+Let users add upcoming appointments
+
+Suggest: “You’ve had a low week — want to reschedule?”
+
+Reminders + prep notes section
+
+c. 💳 Bills & Insurance (Optional toggle)
+Log out-of-pocket costs
+
+Upload receipts or notes
+
+Tag as reimbursed or pending
+
+d. ✅ To-Do Inbox (linked to health)
+Add tasks: order meds, follow up with doctor, rest
+
+Option to “snooze during flare days”
+
+🧘🏾‍♀️ Optional: Faith Mode
+Encouraging scripture, prayer, or reflection prompt
+
+Toggleable spiritual support for those navigating health + hope
+
+💅 Design Notes
+Use brand colors: deep purple #65007D, nude/cream backgrounds
+
+Keep UI soft, friendly, mobile-first
+
+Private by default — no social feed, no tracking users
+
+Visual tone: warm, clear, empowering
+
+📊 Data Structure
+Connect symptom logs, timeline, tasks, and mood/energy data
+
+Store entries securely (Firebase or Supabase fine for MVP)
+
+Unique user IDs (can be anonymous)
+
+🔒 Privacy & Respect
+No cycle tracking assumptions (many are on suppression)
+
+All logs optional
+
+Option to delete data or use anonymous mode
+
+🎯 Output:
+A working prototype (web or mobile) to test with real users
+
+Structured flow for logging, timeline, insight, and gentle life management
+
+Ready for user testing, pitch deck, and early fundraising
