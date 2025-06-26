@@ -103,6 +103,7 @@ This is a full-stack web application designed to help users track their health s
 ```
 Changelog:
 - June 23, 2025. Initial setup
+- June 26, 2025. Added complete PWA functionality including manifest.json, service worker, install prompt, and icons for mobile deployment and user testing
 ```
 
 ## User Preferences

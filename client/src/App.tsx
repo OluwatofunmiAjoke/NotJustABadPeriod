@@ -12,6 +12,7 @@ import TimelinePage from "@/pages/timeline-page";
 import InsightsPage from "@/pages/insights-page";
 import ProfilePage from "@/pages/profile-page";
 import { ProtectedRoute } from "./lib/protected-route";
+import { PWAInstallPrompt } from "@/components/pwa-install-prompt";
 
 function Router() {
   return (
@@ -34,6 +35,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
+          <PWAInstallPrompt />
         </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>

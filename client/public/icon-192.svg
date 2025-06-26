@@ -1,0 +1,8 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="192" height="192" rx="24" fill="#65007D"/>
+  <circle cx="96" cy="76" r="32" fill="#faf9f6" opacity="0.9"/>
+  <circle cx="96" cy="76" r="20" fill="#65007D"/>
+  <path d="M96 96 L76 136 L116 136 Z" fill="#faf9f6" opacity="0.9"/>
+  <circle cx="96" cy="96" r="8" fill="#65007D"/>
+  <text x="96" y="165" text-anchor="middle" fill="#faf9f6" font-family="system-ui" font-size="14" font-weight="600">NJABP</text>
+</svg>
