@@ -95,7 +95,15 @@ export function registerRoutes(app: Express): Server {
     
     try {
       console.log("Timeline entry request body:", JSON.stringify(req.body, null, 2));
-      const validatedData = insertMedicalTimelineSchema.parse(req.body);
+      
+      // Convert date string to Date object before validation
+      const requestData = {
+        ...req.body,
+        date: req.body.date ? new Date(req.body.date) : undefined
+      };
+      
+      console.log("Processed request data:", JSON.stringify(requestData, null, 2));
+      const validatedData = insertMedicalTimelineSchema.parse(requestData);
       console.log("Validated timeline data:", JSON.stringify(validatedData, null, 2));
       const entry = await storage.createMedicalTimelineEntry(req.user!.id, validatedData);
       res.status(201).json(entry);
