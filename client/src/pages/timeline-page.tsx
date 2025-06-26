@@ -20,6 +20,8 @@ import { z } from "zod";
 
 const formSchema = insertMedicalTimelineSchema.extend({
   date: z.string().min(1, "Date is required"),
+  title: z.string().min(1, "Title is required"),
+  type: z.string().min(1, "Type is required"),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -68,19 +70,38 @@ export default function TimelinePage() {
       form.reset();
     },
     onError: (error: Error) => {
+      console.error("Timeline entry creation error:", error);
       toast({
         title: "Error adding entry",
-        description: error.message,
+        description: error.message || "Failed to add timeline entry. Please try again.",
         variant: "destructive",
       });
     },
   });
 
   const onSubmit = (data: FormData) => {
+    console.log("Form data being submitted:", data);
+    
+    // Ensure date is properly formatted
+    if (!data.date) {
+      toast({
+        title: "Date required",
+        description: "Please select a date for this timeline entry.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const entryData: InsertMedicalTimelineEntry = {
-      ...data,
+      title: data.title,
+      description: data.description || undefined,
+      type: data.type,
       date: new Date(data.date),
+      doctorName: data.doctorName || undefined,
+      location: data.location || undefined,
     };
+
+    console.log("Timeline entry data being sent:", entryData);
     createEntryMutation.mutate(entryData);
   };
 

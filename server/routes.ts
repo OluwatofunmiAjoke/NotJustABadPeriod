@@ -94,12 +94,24 @@ export function registerRoutes(app: Express): Server {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
     try {
+      console.log("Timeline entry request body:", JSON.stringify(req.body, null, 2));
       const validatedData = insertMedicalTimelineSchema.parse(req.body);
+      console.log("Validated timeline data:", JSON.stringify(validatedData, null, 2));
       const entry = await storage.createMedicalTimelineEntry(req.user!.id, validatedData);
       res.status(201).json(entry);
     } catch (error) {
       console.error("Error creating timeline entry:", error);
-      res.status(400).json({ message: "Invalid timeline entry data" });
+      if (error instanceof Error) {
+        console.error("Error message:", error.message);
+        console.error("Error stack:", error.stack);
+      }
+      
+      // Return more specific error information
+      const errorMessage = error instanceof Error ? error.message : "Invalid timeline entry data";
+      res.status(400).json({ 
+        message: errorMessage,
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 
