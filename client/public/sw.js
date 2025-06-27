@@ -1,4 +1,4 @@
-const CACHE_NAME = 'njabp-v5';
+const CACHE_NAME = 'njabp-v6';
 const urlsToCache = [
   '/',
   '/manifest.json',

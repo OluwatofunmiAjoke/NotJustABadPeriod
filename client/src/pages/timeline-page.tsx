@@ -27,12 +27,12 @@ const formSchema = insertMedicalTimelineSchema.extend({
 type FormData = z.infer<typeof formSchema>;
 
 const ENTRY_TYPES = [
-  { value: "surgery", label: "Surgery", icon: Stethoscope, color: "border-red-500" },
-  { value: "diagnosis", label: "Diagnosis", icon: FileText, color: "border-blue-500" },
-  { value: "visit", label: "Doctor Visit", icon: Activity, color: "border-primary" },
-  { value: "scan", label: "Scan/Imaging", icon: TestTube, color: "border-green-500" },
-  { value: "test", label: "Lab Test", icon: TestTube, color: "border-yellow-500" },
-  { value: "treatment", label: "Treatment Started", icon: Activity, color: "border-purple-500" },
+  { value: "surgery", label: "Surgery", icon: Stethoscope, color: "border-red-500", bgColor: "bg-red-50", textColor: "text-red-700", badgeColor: "bg-red-100" },
+  { value: "diagnosis", label: "Diagnosis", icon: FileText, color: "border-blue-500", bgColor: "bg-blue-50", textColor: "text-blue-700", badgeColor: "bg-blue-100" },
+  { value: "visit", label: "Doctor Visit", icon: Activity, color: "border-primary", bgColor: "bg-purple-50", textColor: "text-purple-700", badgeColor: "bg-purple-100" },
+  { value: "scan", label: "Scan/Imaging", icon: TestTube, color: "border-green-500", bgColor: "bg-green-50", textColor: "text-green-700", badgeColor: "bg-green-100" },
+  { value: "test", label: "Lab Test", icon: TestTube, color: "border-yellow-500", bgColor: "bg-yellow-50", textColor: "text-yellow-700", badgeColor: "bg-yellow-100" },
+  { value: "treatment", label: "Treatment Started", icon: Activity, color: "border-orange-500", bgColor: "bg-orange-50", textColor: "text-orange-700", badgeColor: "bg-orange-100" },
 ];
 
 export default function TimelinePage() {
@@ -188,12 +188,16 @@ export default function TimelinePage() {
   const getEntryIcon = (type: string) => {
     const entryType = ENTRY_TYPES.find(t => t.value === type);
     const Icon = entryType?.icon || FileText;
-    return <Icon className="h-5 w-5 text-primary" />;
+    return <Icon className="h-4 w-4" />;
   };
 
   const getEntryColor = (type: string) => {
     const entryType = ENTRY_TYPES.find(t => t.value === type);
     return entryType?.color || "border-primary";
+  };
+
+  const getEntryTypeData = (type: string) => {
+    return ENTRY_TYPES.find(t => t.value === type) || ENTRY_TYPES[2]; // default to visit
   };
 
   return (
@@ -391,57 +395,63 @@ export default function TimelinePage() {
           </div>
         ) : timeline && timeline.length > 0 ? (
           <div className="space-y-4">
-            {timeline.map((entry) => (
-              <Card key={entry.id} className={`border-l-4 ${getEntryColor(entry.type)}`}>
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
-                        {getEntryIcon(entry.type)}
-                        <h3 className="font-medium text-gray-800">{entry.title}</h3>
-                      </div>
-                      {entry.description && (
-                        <p className="text-sm text-muted-foreground mb-2">
-                          {entry.description}
-                        </p>
-                      )}
-                      {entry.attachments && entry.attachments.length > 0 && (
-                        <div className="mb-2">
-                          <div className="flex flex-wrap gap-1">
-                            {entry.attachments.map((attachment, idx) => (
-                              <div key={idx} className="flex items-center space-x-1 bg-gray-100 px-2 py-1 rounded text-xs">
-                                <Paperclip className="h-3 w-3" />
-                                <span className="truncate max-w-20">{attachment}</span>
-                              </div>
-                            ))}
+            {timeline.map((entry) => {
+              const typeData = getEntryTypeData(entry.type);
+              return (
+                <Card key={entry.id} className={`border-l-4 ${getEntryColor(entry.type)}`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="font-medium text-gray-800">{entry.title}</h3>
+                          <div className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${typeData.badgeColor} ${typeData.textColor}`}>
+                            {getEntryIcon(entry.type)}
+                            <span>{typeData.label}</span>
                           </div>
                         </div>
-                      )}
-                      <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-                        <div className="flex items-center space-x-1">
-                          <Calendar className="h-3 w-3" />
-                          <span>{new Date(entry.date).toLocaleDateString()}</span>
+                        {entry.description && (
+                          <p className="text-sm text-muted-foreground mb-2">
+                            {entry.description}
+                          </p>
+                        )}
+                        {entry.attachments && entry.attachments.length > 0 && (
+                          <div className="mb-2">
+                            <div className="flex flex-wrap gap-1">
+                              {entry.attachments.map((attachment, idx) => (
+                                <div key={idx} className="flex items-center space-x-1 bg-gray-100 px-2 py-1 rounded text-xs">
+                                  <Paperclip className="h-3 w-3" />
+                                  <span className="truncate max-w-20">{attachment}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        <div className="flex items-center space-x-4 text-xs text-muted-foreground">
+                          <div className="flex items-center space-x-1">
+                            <Calendar className="h-3 w-3" />
+                            <span>{new Date(entry.date).toLocaleDateString()}</span>
+                          </div>
+                          {entry.doctorName && (
+                            <span>Dr. {entry.doctorName}</span>
+                          )}
+                          {entry.location && (
+                            <span>{entry.location}</span>
+                          )}
                         </div>
-                        {entry.doctorName && (
-                          <span>Dr. {entry.doctorName}</span>
-                        )}
-                        {entry.location && (
-                          <span>{entry.location}</span>
-                        )}
                       </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-muted-foreground hover:text-foreground"
+                        onClick={() => openEditDialog(entry)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-muted-foreground hover:text-foreground"
-                      onClick={() => openEditDialog(entry)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         ) : (
           <Card>
