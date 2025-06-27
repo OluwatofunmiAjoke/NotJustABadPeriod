@@ -268,7 +268,13 @@ export function registerRoutes(app: Express): Server {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
     try {
-      const validatedData = insertHealthTaskSchema.parse(req.body);
+      // Convert date string to Date object if present
+      const processedBody = {
+        ...req.body,
+        dueDate: req.body.dueDate ? new Date(req.body.dueDate) : null,
+      };
+      
+      const validatedData = insertHealthTaskSchema.parse(processedBody);
       const task = await storage.createHealthTask(req.user!.id, validatedData);
       res.status(201).json(task);
     } catch (error) {
@@ -282,8 +288,33 @@ export function registerRoutes(app: Express): Server {
     
     try {
       const id = parseInt(req.params.id);
-      const updates = req.body;
-      const task = await storage.updateHealthTask(id, req.user!.id, updates);
+      const processedUpdates = {
+        ...req.body,
+        dueDate: req.body.dueDate ? new Date(req.body.dueDate) : req.body.dueDate,
+      };
+      const task = await storage.updateHealthTask(id, req.user!.id, processedUpdates);
+      
+      if (!task) {
+        return res.status(404).json({ message: "Health task not found" });
+      }
+      
+      res.json(task);
+    } catch (error) {
+      console.error("Error updating health task:", error);
+      res.status(400).json({ message: "Failed to update health task" });
+    }
+  });
+
+  app.patch("/api/health-tasks/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const id = parseInt(req.params.id);
+      const processedUpdates = {
+        ...req.body,
+        dueDate: req.body.dueDate ? new Date(req.body.dueDate) : req.body.dueDate,
+      };
+      const task = await storage.updateHealthTask(id, req.user!.id, processedUpdates);
       
       if (!task) {
         return res.status(404).json({ message: "Health task not found" });

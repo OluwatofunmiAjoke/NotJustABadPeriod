@@ -104,6 +104,7 @@ This is a full-stack web application designed to help users track their health s
 Changelog:
 - June 23, 2025. Initial setup
 - June 26, 2025. Added complete PWA functionality including manifest.json, service worker, install prompt, and icons for mobile deployment and user testing
+- June 27, 2025. Added health task management system with entry point on home screen, task creation modal with categories (appointment, medication, test, exercise), completion functionality, and fixed date processing validation
 ```
 
 ## User Preferences
