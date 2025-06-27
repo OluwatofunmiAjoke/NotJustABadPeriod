@@ -148,6 +148,8 @@ export const insertAppointmentSchema = createInsertSchema(appointments).omit({
 export const insertHealthTaskSchema = createInsertSchema(healthTasks).omit({
   id: true,
   userId: true,
+}).extend({
+  dueDate: z.union([z.date(), z.string(), z.null()]).optional(),
 });
 
 export const insertExpenseSchema = createInsertSchema(expenses).omit({

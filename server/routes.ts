@@ -268,14 +268,17 @@ export function registerRoutes(app: Express): Server {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
     try {
-      // Convert date string to Date object if present
-      const processedBody = {
-        ...req.body,
-        dueDate: req.body.dueDate ? new Date(req.body.dueDate) : null,
+      const validatedData = insertHealthTaskSchema.parse(req.body);
+      
+      // Convert date string to Date object if present and valid
+      const processedData = {
+        ...validatedData,
+        dueDate: validatedData.dueDate && typeof validatedData.dueDate === 'string' 
+          ? new Date(validatedData.dueDate) 
+          : validatedData.dueDate,
       };
       
-      const validatedData = insertHealthTaskSchema.parse(processedBody);
-      const task = await storage.createHealthTask(req.user!.id, validatedData);
+      const task = await storage.createHealthTask(req.user!.id, processedData);
       res.status(201).json(task);
     } catch (error) {
       console.error("Error creating health task:", error);
@@ -310,10 +313,15 @@ export function registerRoutes(app: Express): Server {
     
     try {
       const id = parseInt(req.params.id);
+      
+      // Handle date conversion for updates
       const processedUpdates = {
         ...req.body,
-        dueDate: req.body.dueDate ? new Date(req.body.dueDate) : req.body.dueDate,
+        dueDate: req.body.dueDate && typeof req.body.dueDate === 'string' 
+          ? new Date(req.body.dueDate) 
+          : req.body.dueDate,
       };
+      
       const task = await storage.updateHealthTask(id, req.user!.id, processedUpdates);
       
       if (!task) {
