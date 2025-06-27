@@ -127,9 +127,18 @@ export function registerRoutes(app: Express): Server {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
     try {
+      console.log("Timeline entry update request body:", JSON.stringify(req.body, null, 2));
+      
       const id = parseInt(req.params.id);
-      const updates = req.body;
-      const entry = await storage.updateMedicalTimelineEntry(id, req.user!.id, updates);
+      
+      // Convert date string to Date object before validation if date is provided
+      const requestData = {
+        ...req.body,
+        date: req.body.date ? new Date(req.body.date) : undefined
+      };
+      
+      console.log("Processed update request data:", JSON.stringify(requestData, null, 2));
+      const entry = await storage.updateMedicalTimelineEntry(id, req.user!.id, requestData);
       
       if (!entry) {
         return res.status(404).json({ message: "Timeline entry not found" });
@@ -138,7 +147,14 @@ export function registerRoutes(app: Express): Server {
       res.json(entry);
     } catch (error) {
       console.error("Error updating timeline entry:", error);
-      res.status(400).json({ message: "Failed to update timeline entry" });
+      if (error instanceof Error) {
+        console.error("Error message:", error.message);
+        console.error("Error stack:", error.stack);
+      }
+      res.status(400).json({ 
+        message: error instanceof Error ? error.message : "Failed to update timeline entry",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 

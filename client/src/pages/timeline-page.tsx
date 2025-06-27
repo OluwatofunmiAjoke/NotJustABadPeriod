@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { ArrowLeft, Plus, Calendar, Edit, Stethoscope, FileText, Activity, TestTube } from "lucide-react";
+import { ArrowLeft, Plus, Calendar, Edit, Stethoscope, FileText, Activity, TestTube, Upload, X, Paperclip } from "lucide-react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,12 +32,15 @@ const ENTRY_TYPES = [
   { value: "visit", label: "Doctor Visit", icon: Activity, color: "border-primary" },
   { value: "scan", label: "Scan/Imaging", icon: TestTube, color: "border-green-500" },
   { value: "test", label: "Lab Test", icon: TestTube, color: "border-yellow-500" },
+  { value: "treatment", label: "Treatment Started", icon: Activity, color: "border-purple-500" },
 ];
 
 export default function TimelinePage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<MedicalTimelineEntry | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
   const { data: timeline, isLoading } = useQuery<MedicalTimelineEntry[]>({
     queryKey: ["/api/medical-timeline"],
@@ -55,6 +58,29 @@ export default function TimelinePage() {
     },
   });
 
+  // Reset form when editing entry changes
+  useEffect(() => {
+    if (editingEntry) {
+      form.reset({
+        title: editingEntry.title,
+        description: editingEntry.description || "",
+        type: editingEntry.type,
+        date: new Date(editingEntry.date).toISOString().split('T')[0],
+        doctorName: editingEntry.doctorName || "",
+        location: editingEntry.location || "",
+      });
+    } else {
+      form.reset({
+        title: "",
+        description: "",
+        type: "visit",
+        date: "",
+        doctorName: "",
+        location: "",
+      });
+    }
+  }, [editingEntry]);
+
   const createEntryMutation = useMutation({
     mutationFn: async (data: InsertMedicalTimelineEntry) => {
       const res = await apiRequest("POST", "/api/medical-timeline", data);
@@ -67,6 +93,8 @@ export default function TimelinePage() {
         description: "Your medical timeline has been updated.",
       });
       setIsDialogOpen(false);
+      setEditingEntry(null);
+      setUploadedFiles([]);
       form.reset();
     },
     onError: (error: Error) => {
@@ -74,6 +102,32 @@ export default function TimelinePage() {
       toast({
         title: "Error adding entry",
         description: error.message || "Failed to add timeline entry. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateEntryMutation = useMutation({
+    mutationFn: async (data: { id: number; updates: Partial<InsertMedicalTimelineEntry> }) => {
+      const res = await apiRequest("PUT", `/api/medical-timeline/${data.id}`, data.updates);
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/medical-timeline"] });
+      toast({
+        title: "Timeline entry updated",
+        description: "Your medical timeline has been updated.",
+      });
+      setIsDialogOpen(false);
+      setEditingEntry(null);
+      setUploadedFiles([]);
+      form.reset();
+    },
+    onError: (error: Error) => {
+      console.error("Timeline entry update error:", error);
+      toast({
+        title: "Error updating entry",
+        description: error.message || "Failed to update timeline entry. Please try again.",
         variant: "destructive",
       });
     },
@@ -99,10 +153,36 @@ export default function TimelinePage() {
       date: new Date(data.date),
       doctorName: data.doctorName || undefined,
       location: data.location || undefined,
+      attachments: uploadedFiles.length > 0 ? uploadedFiles.map(f => f.name) : undefined,
     };
 
     console.log("Timeline entry data being sent:", entryData);
-    createEntryMutation.mutate(entryData);
+    
+    if (editingEntry) {
+      updateEntryMutation.mutate({ id: editingEntry.id, updates: entryData });
+    } else {
+      createEntryMutation.mutate(entryData);
+    }
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    setUploadedFiles(prev => [...prev, ...files]);
+  };
+
+  const removeFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const openEditDialog = (entry: MedicalTimelineEntry) => {
+    setEditingEntry(entry);
+    setIsDialogOpen(true);
+  };
+
+  const openCreateDialog = () => {
+    setEditingEntry(null);
+    setUploadedFiles([]);
+    setIsDialogOpen(true);
   };
 
   const getEntryIcon = (type: string) => {
@@ -137,14 +217,17 @@ export default function TimelinePage() {
               variant="ghost"
               size="sm"
               className="text-white hover:bg-white hover:bg-opacity-20"
+              onClick={openCreateDialog}
             >
               <Plus className="h-4 w-4 mr-1" />
               Add Entry
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Add Timeline Entry</DialogTitle>
+              <DialogTitle>
+                {editingEntry ? "Edit Timeline Entry" : "Add Timeline Entry"}
+              </DialogTitle>
             </DialogHeader>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
@@ -230,12 +313,63 @@ export default function TimelinePage() {
                 />
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="attachments">Documents/Files</Label>
+                <div className="border-2 border-dashed border-gray-200 rounded-lg p-4">
+                  <Input
+                    id="attachments"
+                    type="file"
+                    multiple
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                  />
+                  <Label 
+                    htmlFor="attachments" 
+                    className="cursor-pointer flex flex-col items-center space-y-2 text-center"
+                  >
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      Click to upload documents, receipts, or reports
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      PDF, JPG, PNG, DOC files supported
+                    </span>
+                  </Label>
+                </div>
+                
+                {uploadedFiles.length > 0 && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Uploaded Files:</Label>
+                    {uploadedFiles.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                        <div className="flex items-center space-x-2">
+                          <Paperclip className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm truncate">{file.name}</span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeFile(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <Button
                 type="submit"
                 className="w-full"
-                disabled={createEntryMutation.isPending}
+                disabled={createEntryMutation.isPending || updateEntryMutation.isPending}
               >
-                {createEntryMutation.isPending ? "Adding..." : "Add Entry"}
+                {createEntryMutation.isPending || updateEntryMutation.isPending 
+                  ? (editingEntry ? "Updating..." : "Adding...") 
+                  : (editingEntry ? "Update Entry" : "Add Entry")
+                }
               </Button>
             </form>
           </DialogContent>
@@ -271,6 +405,18 @@ export default function TimelinePage() {
                           {entry.description}
                         </p>
                       )}
+                      {entry.attachments && entry.attachments.length > 0 && (
+                        <div className="mb-2">
+                          <div className="flex flex-wrap gap-1">
+                            {entry.attachments.map((attachment, idx) => (
+                              <div key={idx} className="flex items-center space-x-1 bg-gray-100 px-2 py-1 rounded text-xs">
+                                <Paperclip className="h-3 w-3" />
+                                <span className="truncate max-w-20">{attachment}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       <div className="flex items-center space-x-4 text-xs text-muted-foreground">
                         <div className="flex items-center space-x-1">
                           <Calendar className="h-3 w-3" />
@@ -288,6 +434,7 @@ export default function TimelinePage() {
                       variant="ghost"
                       size="sm"
                       className="text-muted-foreground hover:text-foreground"
+                      onClick={() => openEditDialog(entry)}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -304,7 +451,7 @@ export default function TimelinePage() {
               <p className="text-sm text-muted-foreground mb-4">
                 Start building your medical timeline by adding important health events.
               </p>
-              <Button onClick={() => setIsDialogOpen(true)}>
+              <Button onClick={openCreateDialog}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add First Entry
               </Button>
